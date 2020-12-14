@@ -52,9 +52,7 @@ def is_word_guessed(secret_word, letters_guessed):
       False otherwise
     '''
     for letter in secret_word:
-        if letter in letters_guessed:
-            continue
-        else:
+        if letter not in letters_guessed:
             return False
     return True
 
@@ -119,34 +117,42 @@ def hangman(secret_word):
     guesses_remaining = 6
     warnings_remaining = 3
     letters_guessed = []
-    print(f'''Welcome to the game Hangman!
-I am thinking of a word that is {len(secret_word)} letters long.
-You have {warnings_remaining} warnings left''')
-    while (guesses_remaining > 0) and not (is_word_guessed(secret_word, letters_guessed)):
-        print(f'''-------------
-You have {guesses_remaining} guesses left.
-Available letters: {get_available_letters(letters_guessed)}''')
+    vowels = "aeiou"
 
-        letters_guessed.append((input("Please guess a letter:")).lower())
+    print('Welcome to the game Hangman!')
+    print(f'I am thinking of a word that is {len(secret_word)} letters long.')
+    print(f'You have {warnings_remaining} warnings left')
+    while (guesses_remaining > 0) and not (is_word_guessed(secret_word, letters_guessed)):
+        print('-------------')
+        print(f'You have {guesses_remaining} guesses left.')
+        print(f'Available letters: {get_available_letters(letters_guessed)}')
+
+        let=input("Please guess a letter:").lower()
 
         #Cheking for symbols quantity
-        if len(letters_guessed[-1])>1:
+        if len(let) > 1:
             print("Your input has more then one symbol")
+            continue
 
         #Add hints, output all the aceptable words
-        if letters_guessed[-1]=="*":
+        if let == "*":
             show_possible_matches(get_guessed_word(secret_word, letters_guessed))
+            continue
+
 
         #Checking for unwanted symbols
-        elif not letters_guessed[-1].isalpha():
+        if not let.isalpha():
             if warnings_remaining == 0:
                 guesses_remaining -= 1
             else:
                 warnings_remaining -= 1
             print("Oops! That is not a valid letter. You have", warnings_remaining, "warnings left:", end="")
+            continue
+
+        letters_guessed.append(let)
 
         #Cheking for repeating symbols
-        elif letters_guessed[-1] in letters_guessed[0:-1]:
+        if letters_guessed[-1] in letters_guessed[0:-1]:
             if warnings_remaining == 0:
                 guesses_remaining -= 1
             else:
@@ -155,7 +161,7 @@ Available letters: {get_available_letters(letters_guessed)}''')
 
         #Cheking for usuall mistake
         elif not (letters_guessed[-1] in secret_word):
-            if letters_guessed[-1] in "aeiou":
+            if letters_guessed[-1] in vowels:
                 guesses_remaining -= 2
             else:
                 guesses_remaining -= 1
@@ -168,9 +174,11 @@ Available letters: {get_available_letters(letters_guessed)}''')
         print(get_guessed_word(secret_word, letters_guessed))
 
     if is_word_guessed(secret_word, letters_guessed):
-        print("Congratulations, you won! Your total score for this game is:", guesses_remaining * len(secret_word))
+        print("Congratulations, you won!")
+        print("Your total score for this game is:", guesses_remaining * len(secret_word))
     else:
-        print("Sorry, you ran out of guesses. The word was else\nIt's", secret_word)
+        print("Sorry, you ran out of guesses.")
+        print("The word was else\nIt's", secret_word)
 
 def match_with_gaps(my_word, other_word):
     '''
@@ -181,12 +189,14 @@ def match_with_gaps(my_word, other_word):
         _ , and my_word and other_word are of the same length;
         False otherwise:
     '''
-    my_word = my_word.replace(' ', '')
+
+    emph = "_"
+
     if len(my_word) != len(other_word):
         return False
 
     for i in range(len(my_word)):
-        if my_word[i] != ("_"):
+        if my_word[i] != emph:
             if my_word[i] != other_word[i]:
                 return False
     return True
@@ -200,16 +210,12 @@ def show_possible_matches(my_word):
              Therefore, the hidden letter(_ ) cannot be one of the letters in the word
              that has already been revealed.
     '''
-    flag = False
     possible_matches = []
+    my_word = my_word.replace(' ', '')
     for word in wordlist:
         if match_with_gaps(my_word, word):
-            flag = True
             possible_matches.append(word)
-    if flag == False:
-        print("No matches found")
-    else:
-        print(*possible_matches)
+    print(*possible_matches)
 
 
 if __name__ == "__main__":
