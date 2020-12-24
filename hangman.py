@@ -1,7 +1,7 @@
 # Problem Set 2, hangman.py
 # Name: Vrublevskyi Oleksandr
-# Collaborators: --
-# Time spent: 12 hours
+# Collaborators: Viktor Hozhyi
+# Time spent: 16 hours
 
 # Hangman Game
 import random
@@ -55,7 +55,6 @@ def is_word_guessed(secret_word, letters_guessed):
         if letter not in letters_guessed:
             return False
     return True
-
 
 
 def get_guessed_word(secret_word, letters_guessed):
@@ -116,14 +115,16 @@ def hangman(secret_word):
 
     guesses_remaining = 6
     warnings_remaining = 3
-    letters_guessed = []
-    vowels = "aeiou"
+    letters_guessed = set()
+    VOWELS = {'a','e','i','o','u'}
+    HINT_SYMB = "*"
 
     print('Welcome to the game Hangman!')
+    hint=bool(input("Do you want to play with hints?\n(If 'yes' - enter any symbol, in case 'no' press only 'enter')"))
     print(f'I am thinking of a word that is {len(secret_word)} letters long.')
     print(f'You have {warnings_remaining} warnings left')
     while (guesses_remaining > 0) and not (is_word_guessed(secret_word, letters_guessed)):
-        print('-------------')
+        print('\n-------------')
         print(f'You have {guesses_remaining} guesses left.')
         print(f'Available letters: {get_available_letters(letters_guessed)}')
 
@@ -135,10 +136,9 @@ def hangman(secret_word):
             continue
 
         #Add hints, output all the aceptable words
-        if let == "*":
+        if (let == HINT_SYMB) and (hint == True):
             show_possible_matches(get_guessed_word(secret_word, letters_guessed))
             continue
-
 
         #Checking for unwanted symbols
         if not let.isalpha():
@@ -149,10 +149,8 @@ def hangman(secret_word):
             print("Oops! That is not a valid letter. You have", warnings_remaining, "warnings left:", end="")
             continue
 
-        letters_guessed.append(let)
-
         #Cheking for repeating symbols
-        if letters_guessed[-1] in letters_guessed[0:-1]:
+        if let in letters_guessed:
             if warnings_remaining == 0:
                 guesses_remaining -= 1
             else:
@@ -160,25 +158,27 @@ def hangman(secret_word):
             print("Oops! You've already guessed that letter. You have", warnings_remaining, "warnings left:", end="")
 
         #Cheking for usuall mistake
-        elif not (letters_guessed[-1] in secret_word):
-            if letters_guessed[-1] in vowels:
+        elif not (let in secret_word):
+            if let in VOWELS:
                 guesses_remaining -= 2
             else:
                 guesses_remaining -= 1
             print("Oops! That letter is not in my word:", end="")
 
         #Cheking for right answer
-        elif letters_guessed[-1] in secret_word:
+        elif let in secret_word:
             print("Good guess:", end="")
 
+        letters_guessed.add(let)
         print(get_guessed_word(secret_word, letters_guessed))
 
     if is_word_guessed(secret_word, letters_guessed):
         print("Congratulations, you won!")
-        print("Your total score for this game is:", guesses_remaining * len(secret_word))
+        print(f"Your total score for this game is:{guesses_remaining * len(secret_word)}")
     else:
         print("Sorry, you ran out of guesses.")
-        print("The word was else\nIt's", secret_word)
+        print("The word was else")
+        print(f"It's {secret_word}")
 
 def match_with_gaps(my_word, other_word):
     '''
@@ -190,16 +190,24 @@ def match_with_gaps(my_word, other_word):
         False otherwise:
     '''
 
-    emph = "_"
+    EMPH = "_"
+    gaps_check = {}
 
     if len(my_word) != len(other_word):
         return False
 
     for i in range(len(my_word)):
-        if my_word[i] != emph:
+        if my_word[i] != EMPH:
             if my_word[i] != other_word[i]:
                 return False
+        else:
+            gaps_check[i]=other_word[i]
+
+    for i in (gaps_check.values()):
+        if i in my_word:
+            return False
     return True
+
 
 def show_possible_matches(my_word):
     '''
@@ -215,7 +223,10 @@ def show_possible_matches(my_word):
     for word in wordlist:
         if match_with_gaps(my_word, word):
             possible_matches.append(word)
-    print(*possible_matches)
+    if possible_matches == []:
+        print('No matches found')
+    else:
+        print(*possible_matches)
 
 
 if __name__ == "__main__":
